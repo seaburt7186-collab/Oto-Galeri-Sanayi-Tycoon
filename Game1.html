@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oto Galeri & Sanayi Tycoon v4</title>
+    <style>
+        :root {
+            --bg-color: #0a0c13;
+            --panel-bg: #131722;
+            --border-color: #202738;
+            --accent-blue: #00d2ff;
+            --accent-green: #00e676;
+            --accent-orange: #ff9100;
+            --accent-red: #ff3d71;
+            --accent-purple: #9d4edd;
+            --accent-gold: #ffd700;
+            --accent-pink: #ff60a8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: #fff; padding: 10px; padding-bottom: 70px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 500px; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #1b2234, #0f131f); padding: 12px; border-radius: 14px; margin-bottom: 10px; border: 1px solid var(--border-color); position: relative; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .day-tag { background: var(--accent-purple); color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .piyasa-tag { font-size: 11px; font-weight: bold; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+        .stat-box { background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .stat-label { font-size: 10px; color: #8a99ad; }
+        .kasa-val { font-size: 14px; font-weight: 800; color: var(--accent-green); }
+        .borc-val { font-size: 11px; font-weight: 700; color: #fff; }
+
+        /* Sayfa Yapısı */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .panel { background: var(--panel-bg); padding: 12px; border-radius: 14px; margin-bottom: 10px; border: 1px solid var(--border-color); }
+        .panel h2 { font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; color: var(--accent-blue); display: flex; justify-content: space-between; align-items: center; }
+
+        /* Butonlar */
+        button { width: 100%; background: var(--accent-blue); color: #000; border: none; padding: 9px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.97); }
+        button:disabled { background: #202738; color: #4e5d78; cursor: not-allowed; }
+        
+        .btn-day { background: linear-gradient(90deg, #ff9100, #ff3d71); color: #fff; font-size: 12px; margin-bottom: 10px; padding: 10px; box-shadow: 0 4px 15px rgba(255,145,0,0.3); }
+        .btn-banka { background: #1a233a; color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        .btn-exper { background: #1a2842; color: var(--accent-blue); border: 1px solid var(--accent-blue); margin-top: 4px; }
+        .btn-tamir { background: var(--accent-orange); color: #fff; font-size: 10px; padding: 6px; }
+        .btn-sat { background: var(--accent-green); color: #000; font-weight: 800; }
+        .btn-pazarlik { background: var(--accent-purple); color: #fff; }
+        .btn-action { background: #1a2035; color: #fff; border: 1px solid var(--border-color); font-size: 10px; padding: 6px; }
+        .reset-btn { position: absolute; right: 10px; top: 10px; background: rgba(255,61,113,0.15); color: var(--accent-red); border: 1px solid var(--accent-red); padding: 2px 6px; border-radius: 6px; font-size: 9px; }
+
+        /* Araba Kartı Düzeni */
+        .car-card { background: #0c0f18; border: 1px solid var(--border-color); padding: 10px; border-radius: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .car-main-content { display: flex; gap: 10px; align-items: center; }
+        .car-thumb { width: 75px; height: 55px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0; background: #1a2035; }
+        .car-body { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
+        .car-title { font-weight: bold; font-size: 12px; color: #fff; display: flex; justify-content: space-between; }
+        .seller-info { font-size: 10px; color: var(--accent-gold); }
+        .car-info { font-size: 10px; color: #8a99ad; }
+        
+        /* Detaylı Ekspertiz Raporu */
+        .exper-report { background: #060810; border: 1px dashed var(--accent-blue); padding: 8px; border-radius: 8px; font-size: 10px; color: #d0dbe5; margin-top: 4px; }
+        .exper-report-title { color: var(--accent-blue); font-weight: bold; font-size: 11px; margin-bottom: 4px; border-bottom: 1px solid rgba(0,210,255,0.2); padding-bottom: 2px; }
+        .problem-list { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+        .problem-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,61,113,0.1); border: 1px solid rgba(255,61,113,0.3); padding: 3px 6px; border-radius: 4px; font-size: 9px; }
+        .problem-item.fixed { background: rgba(0,230,118,0.1); border-color: rgba(0,230,118,0.3); color: var(--accent-green); }
+
+        /* Müşteri Teklifleri Kutusu */
+        .offers-container { background: #080b12; border: 1px solid #1a233a; border-radius: 8px; padding: 6px; margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+        .offers-title { font-size: 10px; font-weight: bold; color: var(--accent-gold); display: flex; justify-content: space-between; align-items: center; }
+        .offer-card { background: #121724; border: 1px solid var(--border-color); padding: 6px 8px; border-radius: 6px; font-size: 10px; display: flex; flex-direction: column; gap: 3px; }
+        .offer-header { display: flex; justify-content: space-between; font-weight: bold; color: #fff; }
+        .offer-price { color: var(--accent-green); font-size: 11px; font-weight: bold; }
+        .offer-notes { font-size: 9px; color: #8a99ad; font-style: italic; }
+
+        /* Usta Kartı */
+        .usta-card { background: #080a11; border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; font-size: 10px; margin-bottom: 6px; }
+        .usta-header { display: flex; justify-content: space-between; font-weight: bold; color: var(--accent-gold); margin-bottom: 4px; }
+        .usta-stat { color: #8a99ad; font-size: 9px; }
+        
+        .bonus-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+        .tag { padding: 2px 5px; border-radius: 4px; font-size: 8px; font-weight: bold; }
+        .tag-wash { background: rgba(0,210,255,0.2); color: var(--accent-blue); }
+        .tag-koku { background: rgba(255,96,168,0.2); color: var(--accent-pink); }
+        .tag-jant { background: rgba(255,215,0,0.2); color: var(--accent-gold); }
+        .tag-seramik { background: rgba(157,78,221,0.2); color: var(--accent-purple); }
+
+        /* Dialog Kutusu */
+        .dialog-box { background: #161c2e; border-left: 3px solid var(--accent-purple); padding: 6px 8px; font-size: 10px; color: #e2e8f0; font-style: italic; border-radius: 0 6px 6px 0; margin-top: 2px; }
+
+        /* Alt Navigasyon */
+        .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f131f; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 6px 0; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #7a8ba3; font-size: 10px; cursor: pointer; border: none; background: none; width: 20%; }
+        .nav-item.active { color: var(--accent-blue); font-weight: bold; }
+        .nav-icon { font-size: 16px; margin-bottom: 2px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+        /* Log */
+        #log { background: #06070c; color: #00e676; padding: 8px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 10px; height: 90px; overflow-y: auto; border: 1px solid #161c2e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <button class="reset-btn" onclick="oyunuSifirla()">Sıfırla</button>
+        <div class="top-bar">
+            <span class="day-tag" id="gunText">Gün: 1</span>
+            <span class="piyasa-tag" id="piyasaText" style="color:var(--accent-green)">📈 Piyasa: Normal</span>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Kasa Bakiyesi</div>
+                <div class="kasa-val" id="kasaText">25.000 TL</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Yedek Parça Deposu</div>
+                <div class="borc-val" id="stokText">0 Kaporta | 0 Motor | 0 Şanzıman | 0 Elektrik</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gün Atlatma -->
+    <button class="btn-day" onclick="gunAtla()">⏩ GÜNÜ BİTİR / SONRAKİ GÜNE GEÇ</button>
+
+    <!-- TAB 1: PAZAR -->
+    <div id="tabPazar" class="tab-content active">
+        <div class="panel">
+            <h2>🏬 2. El İlan Pazarı (Sahibinden)</h2>
+            <div id="pazarListesi"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: GALERİM -->
+    <div id="tabGaleri" class="tab-content">
+        <div class="panel">
+            <h2>🅿️ Galerimdeki Araçlar ve Müşteri Teklifleri</h2>
+            <div id="galeriListesi"><p style="font-size: 11px; color: #52607a;">Galerinizde araç bulunmuyor.</p></div>
+        </div>
+    </div>
+
+    <!-- TAB 3: SANAYİ & TAMİRHANE -->
+    <div id="tabSanayi" class="tab-content">
+        <div class="panel">
+            <h2>👨‍🔧 Sanayi Ustaları Kadrosu</h2>
+            <div id="ustalarListesi"></div>
+        </div>
+
+        <div class="panel">
+            <h2>📦 Özel Yedek Parça Deposu</h2>
+            <p style="font-size:9px; color:#8a99ad; margin-bottom:6px;">Her arıza için özel yedek parça gereklidir.</p>
+            <div class="grid-2">
+                <button class="btn-action" onclick="parcaSiparisEt('kaporta', 3000)">📐 Kaporta Parçası (3k TL)</button>
+                <button class="btn-action" onclick="parcaSiparisEt('motor', 6000)">⚙️ Motor Parçası (6k TL)</button>
+                <button class="btn-action" onclick="parcaSiparisEt('sanziman', 5000)">🕹️ Şanzıman Parçası (5k TL)</button>
+                <button class="btn-action" onclick="parcaSiparisEt('elektrik', 2500)">⚡ Elektrik Parçası (2.5k TL)</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>🔧 Tamirhanedeki Arızalı Araçlar</h2>
+            <div id="tamirhaneListesi"></div>
+        </div>
+    </div>
+
+    <!-- TAB 4: OTO YIKAMA & DETAYLI BAKIM -->
+    <div id="tabYikama" class="tab-content">
+        <div class="panel">
+            <h2>🧼 Oto Yıkama & Kuaför İstasyonu</h2>
+            <p style="font-size:10px; color:#8a99ad; margin-bottom:8px;">Araçlarınıza yıkama, cila ve aksesuar uygulayarak Müşteri tekliflerini katlayın!</p>
+            <div id="yikamaListesi"></div>
+        </div>
+    </div>
+
+    <!-- TAB 5: BANKA -->
+    <div id="tabBanka" class="tab-content">
+        <div class="panel">
+            <h2>🏦 Ziraat Bankası Kredi İşlemleri</h2>
+            <p style="font-size:10px; color:#8a99ad; margin-bottom:8px;">Kredi Borcu: <b id="bankaBorcText" style="color:var(--accent-red)">0 TL</b> (Günlük %10 faiz uygulanır)</p>
+            <div class="grid-2" style="gap:8px;">
+                <button class="btn-banka" onclick="krediCek(20000)">20.000 TL Kredi</button>
+                <button class="btn-banka" onclick="krediCek(100000)">100.000 TL Kredi</button>
+            </div>
+            <button style="background: #2a1520; color: #ff3d71; margin-top:8px;" onclick="borcode()">Borcun Tamamını / Bir Kısmını Öde</button>
+        </div>
+    </div>
+
+    <!-- Bildirim Logu -->
+    <div class="panel">
+        <h2>📜 Günlük İşlem Günlüğü</h2>
+        <div id="log">Gelişmiş Çoklu Müşteri & Teklif Modülüne hoş geldin!</div>
+    </div>
+</div>
+
+<!-- Alt Menü Navbar -->
+<div class="navbar">
+    <button class="nav-item active" onclick="tabDegistir('tabPazar', this)">
+        <span class="nav-icon">🏬</span>
+        <span>Pazar</span>
+    </button>
+    <button class="nav-item" onclick="tabDegistir('tabGaleri', this)">
+        <span class="nav-icon">🅿️</span>
+        <span>Galerim</span>
+    </button>
+    <button class="nav-item" onclick="tabDegistir('tabSanayi', this)">
+        <span class="nav-icon">🛠️</span>
+        <span>Sanayi</span>
+    </button>
+    <button class="nav-item" onclick="tabDegistir('tabYikama', this)">
+        <span class="nav-icon">🧼</span>
+        <span>Yıkama</span>
+    </button>
+    <button class="nav-item" onclick="tabDegistir('tabBanka', this)">
+        <span class="nav-icon">🏦</span>
+        <span>Banka</span>
+    </button>
+</div>
+
+<script>
+    let gun = 1;
+    let kasa = 25000;
+    let bankaBorcu = 0;
+    let piyasaCarsi = 1.0;
+
+    // Özel Parça Deposu
+    let parcaDeposu = {
+        kaporta: 1,
+        motor: 1,
+        sanziman: 1,
+        elektrik: 1
+    };
+
+    // Usta Kadrosu Yapısı
+    let ustalar = {
+        kaporta: { isim: "Kaportacı Cevdet Usta", kiralik: false, ucret: 15000, yetenek: 1, xp: 0, uzmanlik: "kaporta" },
+        motor: { isim: "Motorcu Hayri Usta", kiralik: false, ucret: 25000, yetenek: 1, xp: 0, uzmanlik: "motor" },
+        sanziman: { isim: "Şanzımancı İsmet Usta", kiralik: false, ucret: 20000, yetenek: 1, xp: 0, uzmanlik: "sanziman" },
+        elektrik: { isim: "Oto Elektrikçi Naci Usta", kiralik: false, ucret: 12000, yetenek: 1, xp: 0, uzmanlik: "elektrik" }
+    };
+
+    let galeri = [];
+    let pazarIlanlari = [];
+
+    const isimler = ["Ahmet Efendi", "Galerici Vedat", "Memur Şevket", "Al-Satçı Burak", "Doktordan Can", "Öğretmen Hasan", "Müteahhit Ekrem", "Gurbetçi Yılmaz", "Taksici Remzi", "Galip Bey", "Sermet Usta", "Genç Sürücü Kerem"];
+
+    const musteriTipleri = [
+        { tip: "Titiz Aile Babası", hassasiyet: "ariza", yorumTemiz: "Araç pırıl pırıl, çocukları gezdirmeye birebir!", yorumKirli: "Bu arabanın arızası çok, çoluk çocuğu riske atamam..." },
+        { tip: "Genç Modifiye Tutkunu", hassasiyet: "aksesuar", yorumTemiz: "Jantlar ve duruşu efsane dostum, tam benlik!", yorumKirli: "Çok boş araba usta, aksesuarsız binilmez buna." },
+        { tip: "Fırsatçı Al-Satçı", hassasiyet: "fiyat", yorumTemiz: "Fiyatı ve kondisyonu iyi, kâr ettirir.", yorumKirli: "Bu fiyata kurtarmaz, arızalara para gömeriz." },
+        { tip: "Rastgele Galeri Müşterisi", hassasiyet: "genel", yorumTemiz: "Güzel araç, makul fiyatsa el sıkışalım.", yorumKirli: "Çok içime sinmedi ama bütçeme bakıyorum." }
+    ];
+
+    const ilanAciklamalari = [
+        "Etek altı temizlik boyalı, ciğerli araç. Pazarlık sünnettir.",
+        "Doktordan temiz, triger yeni değişti, mazotu koy bin git.",
+        "Hatasız, boyasız, tramersiz! Sol çamurlukta ufak avuç içi kadar lokal var.",
+        "Ekspertize açık, motor %85. Yürüyeninde tık ses yok.",
+        "Acil nakit ihtiyacından satılık! Keyfi masrafları var, fiyatı uygun.",
+        "Model yükselteceğim için satıyorum. Ağır bakımları sanayide yeni yapıldı."
+    ];
+
+    const kabulDiyaloglari = [
+        "Usta öldürdün bizi ama hadi madem sünnettir, noter harcı senden olsun verdik gitti!",
+        "Kardeşim valla çok zarar ettirdin ama ayağımız uğurlu gelsin, helali hoş olsun al git.",
+        "Gönlün olsun be hemşerim, gel çayımı iç noterde devredelim."
+    ];
+
+    const redDiyaloglari = [
+        "Kardeşim o paraya bisiklet vermiyorlar, dalga mı geçiyorsun?",
+        "Yok ustam, malımın düşmanı değilim! O fiyata imkanı yok vermem.",
+        "Pazarlık dedik de öldür demedik hemşerim, nasip değilmiş başka kapıya."
+    ];
+
+    // Olası Detaylı Arıza Havuzu
+    const arizaKatalogu = {
+        kaporta: [
+            { id: "gocuk", ad: "Tavanda / Kapıda Derin Göçük Var", iscilik: 2500 },
+            { id: "cizik", ad: "Sol Taraf Derin Çizik & Çamurluk Hasarlı", iscilik: 1800 },
+            { id: "boya", ad: "Tavan ve Kaput Güneş Yanıklı / Boya İstiyor", iscilik: 3500 }
+        ],
+        motor: [
+            { id: "yag", ad: "Motor Yağ Yakıyor / Duman Atıyor", iscilik: 6000 },
+            { id: "triger", ad: "Triger Kayışı ve Devirdaim Kopuk/Aşınmış", iscilik: 4500 },
+            { id: "contasi", ad: "Silindir Kapak Contası Yanık", iscilik: 8000 }
+        ],
+        sanziman: [
+            { id: "vites", ad: "2. Ve 3. Vites Cartlıyor / Atıyor", iscilik: 4000 },
+            { id: "baski", ad: "Baskı Balatası Bitti / Kaçırıyor", iscilik: 3000 },
+            { id: "otomatik", ad: "Otomatik Şanzıman Vuruntu Yapıyor", iscilik: 9000 }
+        ],
+        elektrik: [
+            { id: "klima", ad: "Klima Kompresörü & Tesisat Bozuk", iscilik: 2000 },
+            { id: "beyin", ad: "Oto Beyin / ECU Tesisatı Arızalı", iscilik: 3500 },
+            { id: "farlar", ad: "Akü Şarj Etmiyor / Far Tesisatı Yanık", iscilik: 1500 }
+        ]
+    };
+
+    const aracKatalogu = [
+        { marka: "Tofaş Şahin 1.6", bazFiyat: 22000, img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='70' viewBox='0 0 100 70'><rect width='100' height='70' fill='%232b2d42'/><rect x='10' y='30' width='80' height='25' rx='3' fill='%23d90429'/><polygon points='20,30 30,15 65,15 80,30' fill='%23edf2f4'/><circle cx='25' cy='55' r='8' fill='%23111'/><circle cx='75' cy='55' r='8' fill='%23111'/><text x='50' y='10' fill='%23fff' font-size='8' text-anchor='middle'>TOFAŞ</text></svg>" },
+        { marka: "Renault Toros", bazFiyat: 28000, img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='70' viewBox='0 0 100 70'><rect width='100' height='70' fill='%232b2d42'/><rect x='10' y='28' width='80' height='27' rx='2' fill='%238d99ae'/><polygon points='18,28 25,12 68,12 78,28' fill='%23edf2f4'/><circle cx='25' cy='55' r='8' fill='%23111'/><circle cx='75' cy='55' r='8' fill='%23111'/><text x='50' y='10' fill='%23fff' font-size='8' text-anchor='middle'>TOROS</text></svg>" },
+        { marka: "Peugeot 206 1.4", bazFiyat: 75000, img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='70' viewBox='0 0 100 70'><rect width='100' height='70' fill='%232b2d42'/><rect x='12' y='32' width='76' height='23' rx='5' fill='%23023e8a'/><polygon points='22,32 35,16 65,16 78,32' fill='%23edf2f4'/><circle cx='28' cy='55' r='8' fill='%23111'/><circle cx='72' cy='55' r='8' fill='%23111'/><text x='50' y='10' fill='%23fff' font-size='8' text-anchor='middle'>PEUGEOT</text></svg>" },
+        { marka: "Fiat Egea 1.3 Multijet", bazFiyat: 165000, img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='70' viewBox='0 0 100 70'><rect width='100' height='70' fill='%232b2d42'/><rect x='8' y='28' width='84' height='27' rx='5' fill='%23457b9d'/><polygon points='18,28 30,14 70,14 80,28' fill='%23edf2f4'/><circle cx='25' cy='55' r='8' fill='%23111'/><circle cx='75' cy='55' r='8' fill='%23111'/><text x='50' y='10' fill='%23fff' font-size='8' text-anchor='middle'>EGEA</text></svg>" },
+        { marka: "Honda Civic 1.6 i-VTEC", bazFiyat: 380000, img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='70' viewBox='0 0 100 70'><rect width='100' height='70' fill='%232b2d42'/><rect x='8' y='30' width='84' height='25' rx='4' fill='%232a9d8f'/><polygon points='20,30 32,15 72,15 82,30' fill='%23edf2f4'/><circle cx='26' cy='55' r='8' fill='%23111'/><circle cx='74' cy='55' r='8' fill='%23111'/><text x='50' y='10' fill='%23fff' font-size='8' text-anchor='middle'>CIVIC</text></svg>" },
+        { marka: "BMW 520i F10", bazFiyat: 1250000, img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='70' viewBox='0 0 100 70'><rect width='100' height='70' fill='%232b2d42'/><rect x='6' y='28' width='88' height='27' rx='5' fill='%233a0ca3'/><polygon points='18,28 30,13 72,13 84,28' fill='%23edf2f4'/><circle cx='24' cy='55' r='8' fill='%23111'/><circle cx='76' cy='55' r='8' fill='%23111'/><text x='50' y='10' fill='%23fff' font-size='8' text-anchor='middle'>BMW F10</text></svg>" }
+    ];
+
+    function tabDegistir(tabId, el) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        el.classList.add('active');
+    }
+
+    function verileriYukle() {
+        const k = localStorage.getItem("s4_kasa");
+        const b = localStorage.getItem("s4_borc");
+        const g = localStorage.getItem("s4_gun");
+        const pd = localStorage.getItem("s4_depo");
+        const ust = localStorage.getItem("s4_ustalar");
+        const env = localStorage.getItem("s4_galeri");
+
+        if (k !== null) kasa = parseInt(k);
+        if (b !== null) bankaBorcu = parseInt(b);
+        if (g !== null) gun = parseInt(g);
+        if (pd !== null) parcaDeposu = JSON.parse(pd);
+        if (ust !== null) ustalar = JSON.parse(ust);
+        if (env !== null) galeri = JSON.parse(env);
+    }
+
+    function verileriKaydet() {
+        localStorage.setItem("s4_kasa", kasa);
+        localStorage.setItem("s4_borc", bankaBorcu);
+        localStorage.setItem("s4_gun", gun);
+        localStorage.setItem("s4_depo", JSON.stringify(parcaDeposu));
+        localStorage.setItem("s4_ustalar", JSON.stringify(ustalar));
+        localStorage.setItem("s4_galeri", JSON.stringify(galeri));
+    }
+
+    function rastgeleArizalarUret() {
+        let arizalar = [];
+        const kategoriler = ['kaporta', 'motor', 'sanziman', 'elektrik'];
+        let secilenKategoriler = kategoriler.sort(() => 0.5 - Math.random()).slice(0, 1 + Math.floor(Math.random() * 3));
+
+        secilenKategoriler.forEach(kat => {
+            let liste = arizaKatalogu[kat];
+            let secilenAriza = liste[Math.floor(Math.random() * liste.length)];
+            arizalar.push({
+                kategori: kat,
+                id: secilenAriza.id,
+                ad: secilenAriza.ad,
+                iscilik: secilenAriza.iscilik,
+                tamirEdildi: false
+            });
+        });
+
+        return arizalar;
+    }
+
+    // ARACIN DURUMUNA, FİYATINA VE AKSESUARLARINA GÖRE ÇOKLU MÜŞTERİ TEKLİFİ ÜRETME
+    function musteriTeklifleriUret(araba) {
+        let teklifler = [];
+        let bozukArizaSayisi = araba.arizalar.filter(a => !a.tamirEdildi).length;
+        
+        // Temel çarpan hesabı
+        let carpan = 1.25; // Taban Kâr %25
+
+        // Bakım / Temizlik Bonusu
+        if (araba.yikandi) carpan += 0.08;
+        if (araba.kokuVar) carpan += 0.03;
+        if (araba.jantVar) carpan += 0.12;
+        if (araba.seramikVar) carpan += 0.20;
+
+        // Arıza Cezası (Eğer yapılmamışsa teklifler düşer)
+        let arizaCezasi = bozukArizaSayisi * 0.18;
+
+        // 2 ile 4 Arasında Farklı Müşteri Gelir
+        let musteriSayisi = 2 + Math.floor(Math.random() * 3);
+
+        for (let i = 0; i < musteriSayisi; i++) {
+            let mIsim = isimler[Math.floor(Math.random() * isimler.length)];
+            let mProfil = musteriTipleri[Math.floor(Math.random() * musteriTipleri.length)];
+
+            let kisiyeOzelCarpan = carpan;
+
+            // Müşteri Hassasiyetine Göre Teklif Farklılaşması
+            if (mProfil.hassasiyet === "ariza") {
+                // Aile babası arızaya çok takılır
+                kisiyeOzelCarpan -= (arizaCezasi * 1.5);
+            } else if (mProfil.hassasiyet === "aksesuar") {
+                // Genç sürücü aksesuara ekstra para verir
+                if (araba.jantVar || araba.seramikVar) kisiyeOzelCarpan += 0.15;
+                kisiyeOzelCarpan -= arizaCezasi;
+            } else if (mProfil.hassasiyet === "fiyat") {
+                // Al-satçı her zaman ölücü teklif verir
+                kisiyeOzelCarpan -= (0.10 + arizaCezasi);
+            } else {
+                kisiyeOzelCarpan -= arizaCezasi;
+            }
+
+            // Rastgele Pazarlık Payı (-%5 ile +%8 arası değişir)
+            let rastgeleVaryasyon = (Math.random() * 0.13) - 0.05;
+            kisiyeOzelCarpan += rastgeleVaryasyon;
+
+            if (kisiyeOzelCarpan < 0.6) kisiyeOzelCarpan = 0.6; // En dip teklif tabanı
+
+            let teklifFiyati = Math.floor(araba.alisFiyati * kisiyeOzelCarpan * piyasaCarsi);
+
+            // Müşteri Yorumu Belirleme
+            let yorum = (bozukArizaSayisi === 0) ? mProfil.yorumTemiz : mProfil.yorumKirli;
+
+            teklifler.push({
+                isim: mIsim,
+                tip: mProfil.tip,
+                fiyat: teklifFiyati,
+                yorum: yorum
+            });
+        }
+
+        // Teklifleri Fiyata Göre Sırala (En yüksek teklif en üstte)
+        teklifler.sort((a, b) => b.fiyat - a.fiyat);
+        return teklifler;
+    }
+
+    function ilanlariYenile() {
+        pazarIlanlari = [];
+        let adet = 3 + Math.floor(Math.random() * 3);
+
+        for (let i = 0; i < adet; i++) {
+            let model = aracKatalogu[Math.floor(Math.random() * aracKatalogu.length)];
+            let satici = isimler[Math.floor(Math.random() * isimler.length)];
+            let aciklama = ilanAciklamalari[Math.floor(Math.random() * ilanAciklamalari.length)];
+            let fiyatedilen = Math.floor(model.bazFiyat * piyasaCarsi * (0.85 + Math.random() * 0.3));
+            
+            pazarIlanlari.push({
+                id: Date.now() + i,
+                satici: satici,
+                aciklama: aciklama,
+                marka: model.marka,
+                img: model.img,
+                istenenFiyat: fiyatedilen,
+                arizalar: rastgeleArizalarUret(),
+                sonDiyalog: ""
+            });
+        }
+    }
+
+    function gunAtla() {
+        gun++;
+        if (bankaBorcu > 0) {
+            let faiz = Math.floor(bankaBorcu * 0.10);
+            bankaBorcu += faiz;
+            logEkle(`⚠️ BANKA: Borca %10 faiz eklendi (+${faiz.toLocaleString()} TL)`);
+        }
+
+        let degisim = (Math.random() * 0.12) - 0.05;
+        piyasaCarsi += degisim;
+        if (piyasaCarsi < 0.7) piyasaCarsi = 0.7;
+
+        // Her yeni günde galerideki araçlara TAZECİK YENİ MÜŞTERİ TEKLİFLERİ GELİR!
+        galeri.forEach(araba => {
+            araba.teklifler = musteriTeklifleriUret(araba);
+        });
+
+        ilanlariYenile();
+        ekranGuncelle();
+        logEkle(`📅 Gün ${gun} başladı! Pazara yeni araçlar, Galerinize yeni Müşteriler geldi.`);
+    }
+
+    function ustaIseAl(kategori) {
+        let usta = ustalar[kategori];
+        if (kasa >= usta.ucret && !usta.kiralik) {
+            kasa -= usta.ucret;
+            usta.kiralik = true;
+            logEkle(`👨‍🔧 ${usta.isim} dükkanda işe başladı!`);
+            ekranGuncelle();
+        } else if (usta.kiralik) {
+            alert("Bu usta zaten kadronuzda!");
+        } else {
+            alert("Yetersiz bakiye.");
+        }
+    }
+
+    function parcaSiparisEt(kategori, ucret) {
+        if (kasa >= ucret) {
+            kasa -= ucret;
+            parcaDeposu[kategori] += 1;
+            logEkle(`📦 Depoya 1 adet ${kategori.toUpperCase()} yedek parçası eklendi.`);
+            ekranGuncelle();
+        } else {
+            alert("Yetersiz bakiye!");
+        }
+    }
+
+    function krediCek(miktar) {
+        kasa += miktar;
+        bankaBorcu += miktar;
+        logEkle(`🏦 Bankadan ${miktar.toLocaleString()} TL kredi çekildi.`);
+        ekranGuncelle();
+    }
+
+    function borcode() {
+        if (bankaBorcu === 0) return;
+        if (kasa >= bankaBorcu) {
+            kasa -= bankaBorcu;
+            logEkle(`✅ Banka borcunun tamamı ödendi.`);
+            bankaBorcu = 0;
+        } else if (kasa > 0) {
+            bankaBorcu -= kasa;
+            logEkle(`Ödeme yapıldı. Kalan borç: ${bankaBorcu.toLocaleString()} TL`);
+            kasa = 0;
+        }
+        ekranGuncelle();
+    }
+
+    function ilandanAl(id) {
+        let ilan = pazarIlanlari.find(x => x.id === id);
+        if (kasa >= ilan.istenenFiyat) {
+            kasa -= ilan.istenenFiyat;
+            let yeniAraba = {
+                marka: ilan.marka,
+                img: ilan.img,
+                alisFiyati: ilan.istenenFiyat,
+                arizalar: ilan.arizalar,
+                experYapildi: false,
+                yikandi: false,
+                kokuVar: false,
+                jantVar: false,
+                seramikVar: false,
+                teklifler: []
+            };
+
+            // Araç alınır alınmaz ilk müşteriler gelir!
+            yeniAraba.teklifler = musteriTeklifleriUret(yeniAraba);
+
+            galeri.push(yeniAraba);
+            pazarIlanlari = pazarIlanlari.filter(x => x.id !== id);
+            logEkle(`🤝 ${ilan.satici} kişisinden ${ilan.marka} alındı. Galeride müşteriler incelemeye başladı!`);
+            ekranGuncelle();
+        } else {
+            alert("Yetersiz bakiye!");
+        }
+    }
+
+    function ilanPazarlik(id) {
+        let ilan = pazarIlanlari.find(x => x.id === id);
+        let teklif = prompt(`${ilan.satici} (${ilan.istenenFiyat.toLocaleString()} TL).\n"Pazarlık sünnettir usta, ne verelim?"\nTeklifiniz (TL):`);
+        teklif = parseInt(teklif);
+
+        if (isNaN(teklif) || teklif <= 0) return;
+
+        if (teklif >= ilan.istenenFiyat) {
+            ilandanAl(id);
+        } else if (teklif >= ilan.istenenFiyat * 0.86) {
+            ilan.istenenFiyat = teklif;
+            let diyalog = kabulDiyaloglari[Math.floor(Math.random() * kabulDiyaloglari.length)];
+            ilan.sonDiyalog = diyalog;
+            logEkle(`🔥 PAZARLIK KABUL! ${ilan.satici}: "${diyalog}"`);
+            pazariCiz();
+        } else {
+            let diyalog = redDiyaloglari[Math.floor(Math.random() * redDiyaloglari.length)];
+            ilan.sonDiyalog = diyalog;
+            logEkle(`❌ PAZARLIK REDDEDİLDİ! ${ilan.satici}: "${diyalog}"`);
+            pazariCiz();
+        }
+    }
+
+    function experSok(index) {
+        if (kasa >= 1500) {
+            kasa -= 1500;
+            galeri[index].experYapildi = true;
+            logEkle(`🔍 ${galeri[index].marka} detaylı ekspertizden geçti. Arızalar tespit edildi!`);
+            ekranGuncelle();
+        } else {
+            alert("Ekspertiz ücreti için 1.500 TL gerekiyor.");
+        }
+    }
+
+    function spesifikArizaTamirEt(arabaIndex, arizaIndex) {
+        let araba = galeri[arabaIndex];
+        let ariza = araba.arizalar[arizaIndex];
+        let usta = ustalar[ariza.kategori];
+
+        if (!usta.kiralik) {
+            alert(`⚠️ Bu arızayı tamir etmek için kadronuzda ${ariza.kategori.toUpperCase()} ustası olması gerekir! Ustalar sekmesinden kiralayın.`);
+            return;
+        }
+
+        if (parcaDeposu[ariza.kategori] < 1) {
+            alert(`⚠️ Depoda yeterli ${ariza.kategori.toUpperCase()} yedek parçası yok! Parça siparişi verin.`);
+            return;
+        }
+
+        let indirimliIscilik = Math.floor(ariza.iscilik / usta.yetenek);
+
+        if (kasa < indirimliIscilik) {
+            alert(`Usta işçilik ücreti için ${indirimliIscilik.toLocaleString()} TL gerekli!`);
+            return;
+        }
+
+        kasa -= indirimliIscilik;
+        parcaDeposu[ariza.kategori] -= 1;
+        ariza.tamirEdildi = true;
+
+        usta.xp += 35;
+        if (usta.xp >= 100) {
+            usta.yetenek += 1;
+            usta.xp = 0;
+            logEkle(`🌟 USTA SEVİYE ATLADI! ${usta.isim} Seviye ${usta.yetenek} oldu! İşçilik maliyeti düştü.`);
+        }
+
+        // Tamir edilince müşteri teklifleri anında iyileşir ve güncellenir!
+        araba.teklifler = musteriTeklifleriUret(araba);
+
+        logEkle(`🔧 ${araba.marka}: "${ariza.ad}" onarıldı. Müşterilerin teklifleri arttı!`);
+        ekranGuncelle();
+    }
+
+    function otoYikama(index) {
+        if (kasa >= 2000 && !galeri[index].yikandi) {
+            kasa -= 2000;
+            galeri[index].yikandi = true;
+            galeri[index].teklifler = musteriTeklifleriUret(galeri[index]);
+            logEkle(`🧼 ${galeri[index].marka} köpüklü yıkandı! Müşteri teklifleri arttı.`);
+            ekranGuncelle();
+        }
+    }
+
+    function kokuEkle(index) {
+        if (kasa >= 500 && !galeri[index].kokuVar) {
+            kasa -= 500;
+            galeri[index].kokuVar = true;
+            galeri[index].teklifler = musteriTeklifleriUret(galeri[index]);
+            logEkle(`🌸 ${galeri[index].marka} kavunlu oto kokusu takıldı!`);
+            ekranGuncelle();
+        }
+    }
+
+    function jantTak(index) {
+        if (kasa >= 15000 && !galeri[index].jantVar) {
+            kasa -= 15000;
+            galeri[index].jantVar = true;
+            galeri[index].teklifler = musteriTeklifleriUret(galeri[index]);
+            logEkle(`💥 ${galeri[index].marka} çelik jant takıldı! Genç müşteriler bayıldı.`);
+            ekranGuncelle();
+        }
+    }
+
+    function seramikKapla(index) {
+        if (kasa >= 25000 && !galeri[index].seramikVar) {
+            kasa -= 25000;
+            galeri[index].seramikVar = true;
+            galeri[index].teklifler = musteriTeklifleriUret(galeri[index]);
+            logEkle(`✨ ${galeri[index].marka} pasta cila seramik kaplandı! Değeri fırladı.`);
+            ekranGuncelle();
+        }
+    }
+
+    // SEÇİLEN ÖZEL MÜŞTERİ TEKLİFİNİ KABUL ETME VE SATIŞ
+    function teklifiKabulEt(arabaIndex, teklifIndex) {
+        let araba = galeri[arabaIndex];
+        let secilenTeklif = araba.teklifler[teklifIndex];
+
+        kasa += secilenTeklif.fiyat;
+        logEkle(`🎉 SATIŞ BAŞARILI! ${araba.marka}, ${secilenTeklif.isim} (${secilenTeklif.tip}) isimli kişiye ${secilenTeklif.fiyat.toLocaleString()} TL'ye satıldı!`);
+        
+        galeri.splice(arabaIndex, 1);
+        ekranGuncelle();
+    }
+
+    function ekranGuncelle() {
+        document.getElementById("gunText").innerText = `Gün: ${gun}`;
+        document.getElementById("kasaText").innerText = kasa.toLocaleString('tr-TR') + " TL";
+        document.getElementById("bankaBorcText").innerText = bankaBorcu.toLocaleString('tr-TR') + " TL";
+        
+        document.getElementById("stokText").innerText = 
+            `${parcaDeposu.kaporta} Kaporta | ${parcaDeposu.motor} Motor | ${parcaDeposu.sanziman} Şanzıman | ${parcaDeposu.elektrik} Elektrik`;
+
+        pazariCiz();
+        galeriyiCiz();
+        ustalariCiz();
+        sanayiCiz();
+        yikamaCiz();
+        verileriKaydet();
+    }
+
+    function pazariCiz() {
+        const pazarDiv = document.getElementById("pazarListesi");
+        pazarDiv.innerHTML = pazarIlanlari.length === 0 ? `<p style="font-size: 11px; color: #52607a;">Pazarda ilan kalmadı.</p>` : "";
+
+        pazarIlanlari.forEach(ilan => {
+            let diyalogHTML = ilan.sonDiyalog ? `<div class="dialog-box">💬 Satıcı: "${ilan.sonDiyalog}"</div>` : '';
+            pazarDiv.innerHTML += `
+                <div class="car-card">
+                    <div class="car-main-content">
+                        <img src="${ilan.img}" class="car-thumb" alt="araç">
+                        <div class="car-body">
+                            <div class="car-title"><span>${ilan.marka}</span> <span style="color:var(--accent-green)">${ilan.istenenFiyat.toLocaleString()} TL</span></div>
+                            <div class="seller-info">👤 İlan Sahibi: ${ilan.satici}</div>
+                            <div class="car-info">📝 "${ilan.aciklama}"</div>
+                        </div>
+                    </div>
+                    ${diyalogHTML}
+                    <div style="display:flex; gap:6px; margin-top:2px;">
+                        <button onclick="ilandanAl(${ilan.id})">Satın Al</button>
+                        <button class="btn-pazarlik" onclick="ilanPazarlik(${ilan.id})">🤝 Pazarlık Yap</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function galeriyiCiz() {
+        const galeriDiv = document.getElementById("galeriListesi");
+        if (galeri.length === 0) {
+            galeriDiv.innerHTML = `<p style="font-size: 11px; color: #52607a;">Galerinizde araç bulunmuyor.</p>`;
+            return;
+        }
+
+        galeriDiv.innerHTML = "";
+        galeri.forEach((araba, index) => {
+            let experHTML = "";
+
+            if (araba.experYapildi) {
+                let problemListesiHTML = araba.arizalar.map(a => `
+                    <div class="problem-item ${a.tamirEdildi ? 'fixed' : ''}">
+                        <span>${a.tamirEdildi ? '✓' : '✖'} [${a.kategori.toUpperCase()}] ${a.ad}</span>
+                        <span>${a.tamirEdildi ? 'ONARILDI' : 'ARIZALI'}</span>
+                    </div>
+                `).join("");
+
+                experHTML = `
+                    <div class="exper-report">
+                        <div class="exper-report-title">📋 TSE ONAYLI EKSPERTİZ RAPORU</div>
+                        <div class="problem-list">${problemListesiHTML}</div>
+                    </div>`;
+            } else {
+                experHTML = `<button class="btn-exper" onclick="experSok(${index})">🔍 Detaylı Ekspertize Sok (1.500 TL)</button>`;
+            }
+
+            let bonusTags = `
+                <div class="bonus-tags">
+                    ${araba.yikandi ? '<span class="tag tag-wash">🧼 Yıkandı (+%8)</span>' : ''}
+                    ${araba.kokuVar ? '<span class="tag tag-koku">🌸 Oto Kokusu (+%3)</span>' : ''}
+                    ${araba.jantVar ? '<span class="tag tag-jant">💥 Spor Jant (+%12)</span>' : ''}
+                    ${araba.seramikVar ? '<span class="tag tag-seramik">✨ Seramik (+%20)</span>' : ''}
+                </div>
+            `;
+
+            // Müşteri Teklifleri HTML
+            let tekliflerHTML = "";
+            if (araba.teklifler && araba.teklifler.length > 0) {
+                let kartlar = araba.teklifler.map((tek, tIdx) => `
+                    <div class="offer-card">
+                        <div class="offer-header">
+                            <span>👤 ${tek.isim} <small style="font-weight:normal; color:#8a99ad;">(${tek.tip})</small></span>
+                            <span class="offer-price">${tek.fiyat.toLocaleString()} TL</span>
+                        </div>
+                        <div class="offer-notes">"${tek.yorum}"</div>
+                        <button class="btn-sat" style="margin-top:2px; padding:4px;" onclick="teklifiKabulEt(${index}, ${tIdx})"> Teklifi Kabul Et & Sat</button>
+                    </div>
+                `).join("");
+
+                tekliflerHTML = `
+                    <div class="offers-container">
+                        <div class="offers-title">
+                            <span>👥 GELEN MÜŞTERİ TEKLİFLERİ (${araba.teklifler.length})</span>
+                            <span style="font-size:8px; color:#8a99ad;">Duruma ve fiyata göre değişir</span>
+                        </div>
+                        ${kartlar}
+                    </div>
+                `;
+            }
+
+            galeriDiv.innerHTML += `
+                <div class="car-card">
+                    <div class="car-main-content">
+                        <img src="${araba.img}" class="car-thumb" alt="araç">
+                        <div class="car-body">
+                            <div class="car-title"><span>${araba.marka}</span></div>
+                            <div class="car-info">Alış Fiyatı: ${araba.alisFiyati.toLocaleString()} TL</div>
+                        </div>
+                    </div>
+                    ${experHTML}
+                    ${bonusTags}
+                    ${tekliflerHTML}
+                </div>
+            `;
+        });
+    }
+
+    function ustalariCiz() {
+        const div = document.getElementById("ustalarListesi");
+        div.innerHTML = "";
+
+        Object.keys(ustalar).forEach(kat => {
+            let usta = ustalar[kat];
+            div.innerHTML += `
+                <div class="usta-card">
+                    <div class="usta-header">
+                        <span>${usta.isim}</span>
+                        <span>${usta.kiralik ? `Seviye ${usta.yetenek} (XP:${usta.xp}/100)` : 'Kadroda Yok'}</span>
+                    </div>
+                    <div class="usta-stat">Uzmanlık: ${kat.toUpperCase()} | Yetenek İndirimi: %${(usta.yetenek - 1) * 15}</div>
+                    ${!usta.kiralik ? `<button class="btn-action" style="margin-top:4px; background:var(--accent-purple);" onclick="ustaIseAl('${kat}')">👨‍🔧 İşe Al (${usta.ucret.toLocaleString()} TL)</button>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    function sanayiCiz() {
+        const div = document.getElementById("tamirhaneListesi");
+        div.innerHTML = "";
+
+        let arizaliAraclar = galeri.filter(a => a.arizalar.some(ar => !ar.tamirEdildi));
+
+        if (arizaliAraclar.length === 0) {
+            div.innerHTML = `<p style="font-size: 11px; color: #52607a;">Tamir bekleyen arızalı araç yok.</p>`;
+            return;
+        }
+
+        galeri.forEach((araba, gIndex) => {
+            let aktifArizalar = araba.arizalar.filter(a => !a.tamirEdildi);
+            if (aktifArizalar.length > 0) {
+
+                let arizaButonlari = araba.arizalar.map((ariza, aIndex) => {
+                    if (ariza.tamirEdildi) {
+                        return `<div style="font-size:9px; color:var(--accent-green); margin-top:2px;">✓ ${ariza.ad} (Tamir Edildi)</div>`;
+                    }
+
+                    let usta = ustalar[ariza.kategori];
+                    let iscilik = Math.floor(ariza.iscilik / usta.yetenek);
+
+                    return `
+                        <div style="margin-top:4px; background:#141926; padding:4px; border-radius:6px; border:1px solid var(--border-color);">
+                            <div style="font-size:10px; font-weight:bold; color:var(--accent-red);">${ariza.ad}</div>
+                            <div style="font-size:9px; color:#8a99ad;">İşçilik: ${iscilik.toLocaleString()} TL | Gerekli Parça: 1x ${ariza.kategori.toUpperCase()}</div>
+                            <button class="btn-tamir" style="margin-top:2px;" onclick="spesifikArizaTamirEt(${gIndex}, ${aIndex})">🛠️ ${usta.isim} İle Onar</button>
+                        </div>
+                    `;
+                }).join("");
+
+                div.innerHTML += `
+                    <div class="car-card">
+                        <div class="car-main-content">
+                            <img src="${araba.img}" class="car-thumb" alt="araç">
+                            <div class="car-body">
+                                <div class="car-title"><span>${araba.marka}</span></div>
+                                <div class="car-info" style="color:var(--accent-orange)">Mevcut Arızalar: ${aktifArizalar.length} Adet</div>
+                            </div>
+                        </div>
+                        ${arizaButonlari}
+                    </div>
+                `;
+            }
+        });
+    }
+
+    function yikamaCiz() {
+        const div = document.getElementById("yikamaListesi");
+        div.innerHTML = "";
+
+        if (galeri.length === 0) {
+            div.innerHTML = `<p style="font-size: 11px; color: #52607a;">Yıkamaya sokulacak araç yok.</p>`;
+            return;
+        }
+
+        galeri.forEach((araba, index) => {
+            div.innerHTML += `
+                <div class="car-card">
+                    <div class="car-main-content">
+                        <img src="${araba.img}" class="car-thumb" alt="araç">
+                        <div class="car-body">
+                            <div class="car-title"><span>${araba.marka}</span></div>
+                        </div>
+                    </div>
+                    <div class="grid-2" style="margin-top:4px;">
+                        <button class="btn-action" onclick="otoYikama(${index})" ${araba.yikandi?'disabled':''}>🧼 Oto Yıkama (2k)</button>
+                        <button class="btn-action" onclick="kokuEkle(${index})" ${araba.kokuVar?'disabled':''}>🌸 Kavun Kokusu (500 TL)</button>
+                        <button class="btn-action" onclick="jantTak(${index})" ${araba.jantVar?'disabled':''}>💥 Çelik Jant (15k)</button>
+                        <button class="btn-action" onclick="seramikKapla(${index})" ${araba.seramikVar?'disabled':''}>✨ Seramik Cila (25k)</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function oyunuSifirla() {
+        if (confirm("Oyunu sıfırlamak istediğinize emin misiniz?")) {
+            localStorage.clear();
+            gun = 1; kasa = 25000; bankaBorcu = 0; piyasaCarsi = 1.0;
+            parcaDeposu = { kaporta: 1, motor: 1, sanziman: 1, elektrik: 1 };
+            ustalar = {
+                kaporta: { isim: "Kaportacı Cevdet Usta", kiralik: false, ucret: 15000, yetenek: 1, xp: 0, uzmanlik: "kaporta" },
+                motor: { isim: "Motorcu Hayri Usta", kiralik: false, ucret: 25000, yetenek: 1, xp: 0, uzmanlik: "motor" },
+                sanziman: { isim: "Şanzımancı İsmet Usta", kiralik: false, ucret: 20000, yetenek: 1, xp: 0, uzmanlik: "sanziman" },
+                elektrik: { isim: "Oto Elektrikçi Naci Usta", kiralik: false, ucret: 12000, yetenek: 1, xp: 0, uzmanlik: "elektrik" }
+            };
+            galeri = [];
+            ilanlariYenile();
+            ekranGuncelle();
+        }
+    }
+
+    function logEkle(m) {
+        const l = document.getElementById("log");
+        l.innerHTML = `> ${m}<br>` + l.innerHTML;
+    }
+
+    verileriYukle();
+    ilanlariYenile();
+    ekranGuncelle();
+</script>
+
+</body>
+</html>
